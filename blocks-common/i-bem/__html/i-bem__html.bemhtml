@@ -327,6 +327,7 @@ default: {
         BEM_ = _this.BEM,
         v = this.ctx,
         buf = this._buf,
+        blockName = v._blockName || this.block,
         tag;
 
     tag = apply(this._mode = 'tag');
@@ -338,7 +339,7 @@ default: {
         if(this.block && v.js !== false) {
             js = apply(this._mode = 'js');
             js = js? this._.extend(v.js, js === true? {} : js) : v.js === true? {} : v.js;
-            js && ((jsParams = {})[BEM_.INTERNAL.buildClass(this.block, v.elem)] = js);
+            js && ((jsParams = {})[BEM_.INTERNAL.buildClass(blockName, v.elem)] = js);
         }
 
         buf.push('<', tag);
@@ -354,7 +355,7 @@ default: {
             buf.push(' class="');
             if(isBEM) {
 
-                BEM_.INTERNAL.buildClasses(this.block, v.elem, v.elemMods || v.mods, buf);
+                BEM_.INTERNAL.buildClasses(blockName, v.elem, v.elemMods || v.mods, buf);
 
                 var mix = apply(this._mode = 'mix');
                 v.mix && (mix = mix? mix.concat(v.mix) : v.mix);
@@ -366,7 +367,7 @@ default: {
                       return (block || '') + '__' + (elem || '');
                     }
 
-                    visited[visitedKey(this.block, this.elem)] = true;
+                    visited[visitedKey(blockName, this.elem)] = true;
 
                     // Transform mix to the single-item array if it's not array
                     if (!this._.isArray(mix)) mix = [mix];
@@ -376,7 +377,7 @@ default: {
                         if (!mixItem) continue;
 
                         var hasItem = mixItem.block || mixItem.elem,
-                            block = mixItem.block || mixItem._block || _this.block,
+                            block = mixItem.block || mixItem._block || blockName,
                             elem = mixItem.elem || mixItem._elem || _this.elem;
 
                         hasItem && buf.push(' ');
@@ -455,6 +456,7 @@ default: {
         if(content || content === 0) {
             var isBEM = this.block || this.elem;
             apply(
+                this.block = blockName,
                 this._notNewList = false,
                 this.position = isBEM ? 1 : this.position,
                 this._listLength = isBEM ? 1 : this._listLength,
