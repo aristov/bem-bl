@@ -112,7 +112,7 @@ function initBlock(blockName, domElem, params, forceLive, callback) {
         $.unique(uniqIdToDomElems[uniqId]);
     }
 
-    var blockClass = blocks[blockName] || DOM.decl(blockName, {}, { live : true });
+    var blockClass = blocks[blockName] || DOM.decl(blockName, {}, { live : true }, true);
     if(!(blockClass._liveInitable = !!blockClass._processLive()) || forceLive || params.live === false) {
         var block = new blockClass(uniqIdToDomElems[uniqId], params, !!forceLive);
         delete uniqIdToDomElems[uniqId];
@@ -774,30 +774,48 @@ var DOM = BEM.DOM = BEM.decl('i-bem__dom',/** @lends BEM.DOM.prototype */{
     /**
      * Finds elements nested in a block
      * @protected
-     * @param {String|jQuery} [ctx=this.domElem] Element where search is being performed
+     * @param {jQuery} [ctx=this.domElem] Element where search is being performed
      * @param {String} names Nested element name (or names separated by spaces)
      * @param {String} [modName] Modifier name
      * @param {String} [modVal] Modifier value
+     * @param {Boolean} [strictMode=false]
      * @returns {jQuery} DOM elements
      */
-    findElem : function(ctx, names, modName, modVal) {
-
-        if(arguments.length % 2) { // if the number of arguments is one or three
+    findElem : function(ctx, names, modName, modVal, strictMode) {
+        if(typeof ctx === 'string') {
+            strictMode = modVal;
             modVal = modName;
             modName = names;
             names = ctx;
             ctx = this.domElem;
-        } else if(typeof ctx == 'string') {
-            ctx = this.findElem(ctx);
+        }
+
+        if(typeof modName === 'boolean') {
+            strictMode = modName;
+            modName = undefined;
         }
 
         var _self = this.__self,
             selector = '.' +
                 names.split(' ').map(function(name) {
-                    return buildClass(_self._name, name, modName, modVal);
-                }).join(',.');
-        return findDomElem(ctx, selector);
+                    return _self.buildClass(name, modName, modVal);
+                }).join(',.'),
+            res = findDomElem(ctx, selector);
 
+        return strictMode? this._filterFindElemResults(res) : res;
+    },
+
+    /**
+     * Filters results of findElem helper execution in strict mode
+     * @param {jQuery} res DOM elements
+     * @returns {jQuery} DOM elements
+     */
+    _filterFindElemResults : function(res) {
+        var blockSelector = this.buildSelector(),
+            domElem = this.domElem;
+        return res.filter(function() {
+            return domElem.index($(this).closest(blockSelector)) > -1;
+        });
     },
 
     /**
@@ -891,7 +909,7 @@ var DOM = BEM.DOM = BEM.decl('i-bem__dom',/** @lends BEM.DOM.prototype */{
             elemName = this.__self._extractElemNameFrom(elem);
         }
 
-        return extractParams(elem[0])[buildClass(this.__self.getName(), elemName)] || {};
+        return extractParams(elem[0])[this.__self.buildClass(elemName)] || {};
 
     },
 
@@ -1313,7 +1331,7 @@ var DOM = BEM.DOM = BEM.decl('i-bem__dom',/** @lends BEM.DOM.prototype */{
         if(to.elem && to.elem.indexOf(' ') > 0) {
             to.elem.split(' ').forEach(function(elem) {
                 _this._liveClassBind(
-                    buildClass(_this._name, elem, to.modName, to.modVal),
+                    this.buildClass(elem, to.modName, to.modVal),
                     event,
                     callback,
                     invokeOnInit);
@@ -1322,7 +1340,7 @@ var DOM = BEM.DOM = BEM.decl('i-bem__dom',/** @lends BEM.DOM.prototype */{
         }
 
         return _this._liveClassBind(
-            buildClass(_this._name, to.elem, to.modName, to.modVal),
+            this.buildClass(to.elem, to.modName, to.modVal),
             event,
             callback,
             invokeOnInit);
@@ -1344,7 +1362,7 @@ var DOM = BEM.DOM = BEM.decl('i-bem__dom',/** @lends BEM.DOM.prototype */{
         if(elem.indexOf(' ') > 1) {
             elem.split(' ').forEach(function(elem) {
                 _this._liveClassUnbind(
-                    buildClass(_this._name, elem),
+                    this.buildClass(elem),
                     event,
                     callback);
             });
@@ -1352,7 +1370,7 @@ var DOM = BEM.DOM = BEM.decl('i-bem__dom',/** @lends BEM.DOM.prototype */{
         }
 
         return _this._liveClassUnbind(
-            buildClass(_this._name, elem),
+            this.buildClass(elem),
             event,
             callback);
 
@@ -1627,7 +1645,7 @@ var DOM = BEM.DOM = BEM.decl('i-bem__dom',/** @lends BEM.DOM.prototype */{
      */
     _buildModClassPrefix : function(modName, elem) {
 
-        return buildClass(this._name) +
+        return this._name +
                (elem?
                    ELEM_DELIM + (typeof elem === 'string'? elem : this._extractElemNameFrom(elem)) :
                    '') +
@@ -1663,6 +1681,17 @@ var DOM = BEM.DOM = BEM.decl('i-bem__dom',/** @lends BEM.DOM.prototype */{
     },
 
     /**
+     * Builds a CSS class corresponding to the block/element and modifier
+     * @param {String} [elem] Element name
+     * @param {String} [modName] Modifier name
+     * @param {String} [modVal] Modifier value
+     * @returns {String}
+     */
+    buildClass : function(elem, modName, modVal) {
+        return buildClass(this._name, elem, modName, modVal);
+    },
+
+    /**
      * Builds a CSS selector corresponding to the block/element and modifier
      * @param {String} [elem] Element name
      * @param {String} [modName] Modifier name
@@ -1671,7 +1700,7 @@ var DOM = BEM.DOM = BEM.decl('i-bem__dom',/** @lends BEM.DOM.prototype */{
      */
     buildSelector : function(elem, modName, modVal) {
 
-        return '.' + buildClass(this._name, elem, modName, modVal);
+        return '.' + this.buildClass(elem, modName, modVal);
 
     },
 
