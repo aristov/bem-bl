@@ -12,11 +12,10 @@ default, this.ctx.extend !== false:
         content = apply('content') || ctx.content,
         _extend = this._.extend;
 
-    ['mods', 'elemMods', 'js', 'attrs']
-        .forEach(
-            function(item) {
-                ce[item] = _extend(extend[item], ce[item]);
-            });
+    if (extend.mods && ce.mods) ce.mods = _extend(extend.mods, ce.mods);
+    if (extend.elemMods && ce.elemMods) ce.elemMods = _extend(extend.elemMods, ce.elemMods);
+    if (extend.js && ce.js) ce.js = _extend(extend.js, ce.js);
+    if (extend.attrs && ce.attrs) ce.attrs = _extend(extend.attrs, ce.attrs);
 
     if (extend.mix || ce.mix) {
         ce.mix = (ce.mix || []).concat(extend.mix || []);
