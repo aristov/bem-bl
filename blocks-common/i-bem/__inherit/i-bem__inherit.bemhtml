@@ -1,6 +1,6 @@
 inherit: undefined
 
-this._mode === '', this.inherit: apply(this.inherit = undefined)
+this._mode === '', this.inherit: apply(this.block = this.inherit, this.inherit = undefined)
 
 default, this.block, !this.inherit:
 {

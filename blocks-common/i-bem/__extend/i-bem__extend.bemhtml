@@ -33,7 +33,6 @@ default, this.ctx.extend !== false:
         local(
             this._mode = '',
             this._buf = [],
-            this.block = blockName,
             this.ctx = content)
             {
                 apply();
@@ -41,7 +40,5 @@ default, this.ctx.extend !== false:
             }
     }
 
-    apply(
-        this._mode = '',
-        this.ctx = _extend(extend, ce));
+    apply(this._mode = '', this.ctx = _extend(extend, ce));
 }

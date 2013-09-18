@@ -456,7 +456,6 @@ default: {
         if(content || content === 0) {
             var isBEM = this.block || this.elem;
             apply(
-                this.block = blockName,
                 this._notNewList = false,
                 this.position = isBEM ? 1 : this.position,
                 this._listLength = isBEM ? 1 : this._listLength,
