@@ -1,0 +1,12 @@
+inherit: undefined
+
+this._mode === '', this.inherit: apply(this.inherit = undefined)
+
+default, this.block, !this.inherit:
+{
+    var inherit = apply(this._mode = 'inherit', this.elem = undefined);
+
+    inherit ?
+        apply(this.inherit = this.block, this.block = inherit) :
+        apply(this.inherit = this.block);
+}
