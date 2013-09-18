@@ -327,7 +327,7 @@ default: {
         BEM_ = _this.BEM,
         v = this.ctx,
         buf = this._buf,
-        blockName = v._blockName || this.block,
+        blockName = this.inherit || this.block,
         tag;
 
     tag = apply(this._mode = 'tag');
