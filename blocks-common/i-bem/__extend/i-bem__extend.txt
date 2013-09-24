@@ -1,0 +1,312 @@
+Мода extend предназначена для расширения бэм-сущностей. Например нужно чтобы элемент icon блока b-link использовал шаблоны блока b-icon. Это можно сделать так:
+
+({
+    block: 'b-link',
+    mods: { inner: 'yes' },
+    content: [
+        {
+            block: 'b-icon',
+            mods: { 'size-13': 'info-blue' },
+            mix: [ { block: 'b-link', elem: 'icon' } ]
+        },
+        {
+            elem: 'inner',
+            content: 'link with icon'
+        }
+    ]
+})
+
+Здесь мы видим явную избыточность: мы итак знаем, что это должен быть блок b-icon. Кроме того, приходится дважды указывать название блока b-link.
+Чтобы избежать этого, можно написать шаблон для элемента icon:
+
+/* шаблон (1) */
+block b-link, elem icon, default:
+{
+    applyCtx(
+        this._.extend(
+            {
+                block: 'b-icon',
+                mix: [ { block: this.block, elem: this.elem } ]
+            },
+            this.ctx.extend));
+}
+
+Теперь наш bemjson будет таким:
+
+{
+    block: 'b-link',
+    mods: { inner: 'yes' },
+    content: [
+        {
+            elem: 'icon',
+            extend: {
+                mods: { 'size-13': 'info-blue' }
+            }
+        },
+        {
+            elem: 'inner',
+            content: 'link with icon'
+        }
+    ]
+}
+
+В шаблоне мы расширяем объект, описывающий блок b-icon (расширяющая сущность), объектом, переданным в поле extend.
+Это делается для того, чтобы оставить возможность доопределять расширяющую сущность, например, указывать произвольные модификаторы, как это сделано в примере.
+
+Шаблон (1) - это шаблон по моде default. Если переписать его по моде extend, он будет выглядеть так:
+
+{code}
+block b-link, elem icon, extend:
+{
+    block: 'b-icon'
+}
+
+Все действия, описанные в старом шаблоне, выполняются автоматически. Достаточно указать лишь расширяющий объект. Кроме того, мода extend предоставляет ряд других возможностей.
+
+Объекты, описывающие модификаторы (mods и elemMods), js-параметры (js) и html-атрибуты (attrs) также будут расширены соответствующими объектами, переданными в поле extend:
+
+/* шаблон bemhtml */
+block b-link, elem icon, extend:
+{
+    block: 'b-icon',
+    mods: { size: '13' },
+    js: { param1: 'value1' },
+    attrs: { title: 'title text' }
+}
+
+/* входной bemjson */
+{
+    block: 'b-link',
+    elem: 'icon',
+    extend: {
+        mods: { 'type': 'info' },
+        js: { param2: 'value2' },
+        attrs: { alt: 'alt text' }
+    }
+}
+
+/* результирующий bemjson */
+{
+    block: 'b-icon',
+    mix: [ { block: 'b-link', elem: 'icon' } ],
+    mods: {
+        'size': '13',
+        'type': 'info'
+    },
+    js: {
+        param1: 'value1',
+        param2: 'value2'
+    },
+    attrs: {
+        title: 'title text',
+        alt: 'alt text'
+    }
+}
+
+Остальные поля (block, elem, tag, cls, jsAttr, bem, content, а также любые кастомные), кроме поля mix, будут замещены.
+
+/* шаблон bemhtml */
+block b-link, elem icon, extend:
+{
+    block: 'b-icon',
+    tag: 'img',
+    cls: 'custom-class1',
+    jsAttr: 'onclick',
+    bem: true,
+    content: 'some text',
+    customObj: { key1: 'val1' }
+}
+
+/* входной bemjson */
+{
+    block: 'b-link',
+    elem: 'icon',
+    extend: {
+        block: 'b-canvas',
+        tag: 'canvas',
+        cls: 'custom-class2',
+        jsAttr: 'ondblclick',
+        bem: false,
+        content: 'another text',
+        customObj: { key2: 'val2' }
+    }
+}
+
+/* результирующий bemjson */
+{
+    block: 'b-canvas',
+    mix: [ { block: 'b-link', elem: 'icon' } ],
+    tag: 'canvas',
+    cls: 'custom-class2',
+    jsAttr: 'ondblclick',
+    bem: false,
+    content: 'another text',
+    customObj: { key2: 'val2' }
+}
+
+Поле mix будет объединено:
+
+/* шаблон bemhtml */
+block b-link, elem icon, extend:
+{
+    block: 'b-icon',
+    mix: [ { block: 'b-mixed-1' } ]
+}
+
+/* входной bemjson */
+{
+    block: 'b-link',
+    elem: 'icon',
+    extend: {
+        mix: [ { block: 'b-mixed-2' } ]
+    }
+}
+
+/* результирующий bemjson */
+{
+    block: 'b-icon',
+    mix: [
+        { block: 'b-mixed-1' },
+        { block: 'b-mixed-2' }
+    ]
+}
+
+Кроме того, как видно из примера, указание поля mix в шаблоне по моде extend или объекте поля extend отменяет подмешивание расширяемой
+бэм-сущности (элемент icon блока b-link не будет подмешан к блоку b-icon).
+
+Чтобы избежать этого, подмешивать нужно к расширяемой сущности (b-link__icon). Кроме того, шаблоны по модам mix и js также будут учтены:
+
+/* шаблон bemhtml */
+block b-link, elem icon {
+    mix: [ { block: 'b-mixed-1' } ]
+    js: { param1: 'value1' }
+    extend: { block: 'b-icon' }
+}
+
+/* входной bemjson */
+{
+    block: 'b-link',
+    elem: 'icon',
+    mix: [ { block: 'b-mixed-2' } ],
+    js: { param2: 'value2' }
+}
+
+/* результирующий bemjson */
+{
+    block: 'b-icon',
+    mix: [
+        {
+            block: 'b-link',
+            elem: 'icon',
+            js: {
+                param1: 'value1',
+                param2: 'value2'
+            }
+        },
+        { block: 'b-mixed-1' },
+        { block: 'b-mixed-2' }
+    ]
+}
+
+При этом, как видно из примера, объект js-параметров будет расширен объектом, описанным в шаблоне по соответствующей моде.
+Шаблоны по остальным модам (кроме моды content) для расширяемой сущности и соответствующие поля входного bemjson будут проигнорированы.
+
+Для избежания путаницы и сохранения целостности входного bemjson,
+контент заданный полем объекта расширяемой сущности или описанный в шаблоне по моде content будет выполняться в контексте этой сущности:
+
+/* шаблон bemhtml */
+block b-test, elem link {
+    extend: { block: 'b-link' }
+    content: [
+        { elem: 'icon' },
+        this.ctx.content
+    ]
+}
+
+/* входной bemjson */
+{
+    block: 'b-test',
+    elem: 'link',
+    content: {
+        elem: 'inner',
+        content: 'some text'
+    }
+}
+
+/* результирующий bemjson */
+{
+    block: 'b-link',
+    mix: [ { block: 'b-test', elem: 'link' } ],
+    content: '<div class="b-test__icon"></div><div class="b-test__inner">some text</div>'
+}
+
+Контент будет передан расширяющей сущности уже в виде готовой html-строки.
+
+Чтобы контент обрабатывался в контексте расширяющей сущности, его необходимо указывать в шаблоне по моде extend или объекте extend входного bemjson:
+
+/* шаблон bemhtml */
+block b-test, elem link, extend:
+{
+    block: 'b-link',
+    content: { elem: 'icon' }
+}
+
+/* входной bemjson */
+{
+    block: 'b-test',
+    elem: 'link',
+    extend: {
+        content: {
+            elem: 'inner',
+            content: 'some text'
+        }
+    }
+}
+
+/* результирующий bemjson */
+{
+    block: 'b-link',
+    mix: [ { block: 'b-test', elem: 'link' } ],
+    content: {
+        elem: 'inner',
+        content: 'some text'
+    }
+}
+
+При этом, как уже говорилось выше, контент указанный в шаблоне по моде extend будет замещен контентом, указанном во входном bemjson.
+
+Если шаблон по моде extend подразумевает обработку контента только в контексте расширяющей сущности,
+то в этом шаблоне можно вручную "пробросить" контент, указанный для расширяемой сущности:
+
+{code}
+block b-test, elem link, extend:
+{
+    block: 'b-link',
+    content: this.ctx.content
+}
+
+При этом нужно помнить, что:
+
+{
+    block: 'b-test',
+    content: {
+        elem: 'link',
+        content: {
+            elem: 'inner' // это b-link__inner
+        }
+    }
+}
+
+Рекомендуется дополнительно обращать на это внимание при написании документации для блока с таким шаблоном.
+
+Наконец, вы можете отменить расширение, указав во входном bemjson в поле extend значение false вместо расширяющего объекта:
+
+{
+    block: 'b-link',
+    content: {
+        elem: 'icon',
+        extend: false
+    }
+}
+
+В этом случае к элементу icon не будет применен шаблон по моде extend.
