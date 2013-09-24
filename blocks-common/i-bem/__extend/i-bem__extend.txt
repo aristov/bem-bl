@@ -310,3 +310,14 @@ block b-test, elem link, extend:
 }
 
 В этом случае к элементу icon не будет применен шаблон по моде extend.
+
+Подключение:
+
+{
+    mustDeps: [
+        {
+            block: 'i-bem',
+            elems: ['extend']
+        }
+    ]
+}

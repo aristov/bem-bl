@@ -24,3 +24,14 @@ block list, this.inherit === 'my-list' {
     elem item, tag: 'span'
 
 }
+
+Подключение:
+
+{
+    mustDeps: [
+        {
+            block: 'i-bem',
+            elems: ['inherit']
+        }
+    ]
+}
