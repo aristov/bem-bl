@@ -79,7 +79,6 @@ BEM.decl('i-bem__dom', {
      * Executes handlers for setting modifiers
      * If element sets modifier to itself, it executes onElemSetMod handlers of the own block
      * @private
-     * @param {String} prefix
      * @param {String} elemName Element name
      * @param {String} modName Modifier name
      * @param {String} modVal Modifier value

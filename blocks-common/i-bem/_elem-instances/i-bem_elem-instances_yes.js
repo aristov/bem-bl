@@ -16,7 +16,6 @@ $.inheritSelf(BEM, {}, {
      * @param {String} decl.block Block name
      * @param {String} decl.elem Element name
      * @param {String} [decl.baseBlock] Name of the parent block
-     * @param {Array} [decl.baseMix] Mixed block names
      * @param {String} [decl.modName] Modifier name
      * @param {String|Array} [decl.modVal] Modifier value
      * @param {Object} [props] Methods
@@ -29,7 +28,6 @@ $.inheritSelf(BEM, {}, {
                 {
                     block: buildClass(decl.block, decl.elem),
                     baseBlock: decl.baseBlock,
-                    baseMix: decl.baseMix,
                     modName: decl.modName,
                     modVal: decl.modVal
                 },
