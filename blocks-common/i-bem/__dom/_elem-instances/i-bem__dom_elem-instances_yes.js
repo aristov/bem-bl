@@ -77,7 +77,7 @@ BEM.decl('i-bem__dom', {
 
     /**
      * Executes handlers for setting modifiers
-     * If element sets modifier to itself, it executes onElemSetMod handlers of the own block
+     * If element sets modifier to itself or another element, it executes onElemSetMod handlers of the own block
      * @private
      * @param {String} elemName Element name
      * @param {String} modName Modifier name
@@ -86,15 +86,15 @@ BEM.decl('i-bem__dom', {
      */
     _callModFn : function(elemName, modName, modVal, modFnParams) {
         var result = this.__base.apply(this, arguments),
-            elemName = this.__self._elemName;
+            selfElemName = this.__self._elemName;
 
-        if(elemName) {
+        if(selfElemName) {
             this.__base.call(
                 this.block(),
-                elemName,
+                elemName || selfElemName,
                 modName,
                 modVal,
-                [ this.domElem ].concat(modFnParams)
+                elemName? modFnParams : [ this.domElem ].concat(modFnParams)
             )
                 === false && (result = false);
         }
